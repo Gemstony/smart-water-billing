@@ -4,11 +4,13 @@ require_once __DIR__ . '/../models/Rate.php';
 
 class TokenController {
     private $tokenModel;
+    private $rateModel;
     private $pdo;
     
     public function __construct($pdo) {
         $this->pdo = $pdo;
         $this->tokenModel = new Token($pdo);
+        $this->rateModel = new Rate($pdo);
     }
     
     /**
@@ -17,23 +19,43 @@ class TokenController {
      * @param int $units Number of water units to purchase
      * @return array ['success' => bool, 'token' => string, 'message' => string]
      */
-    public function generateToken($userId, $units) {
+ /**
+     * Generate a token after payment simulation
+     * @param int $userId
+     * @param int $units
+     * @param string $paymentMethod (e.g., 'Simulated', 'M-Pesa', etc.)
+     * @return array ['success' => bool, 'token' => string, 'units' => int, 'amount' => float, 'message' => string]
+     */
+    public function generateToken($userId, $units, $paymentMethod = 'Simulated') {
         if ($units <= 0) {
             return ['success' => false, 'message' => 'Invalid number of units'];
         }
         
-        // For Phase 4, we simulate successful payment.
-        // In later phases, you would verify actual mobile money payment here.
+        // Get current rate
+        $rate = $this->rateModel->getCurrent();
+        $pricePerUnit = $rate ? $rate['price_per_unit'] : 1000; // fallback
+        $totalAmount = $units * $pricePerUnit;
         
+        // Simulate payment success (later you can integrate real API)
+        // For now, assume payment is successful.
+        
+        // Generate token
         $tokenCode = $this->tokenModel->createToken($userId, $units);
         if ($tokenCode) {
-            // Optionally record the transaction in `transactions` table
-            $this->recordTransaction($userId, $units, $tokenCode);
+            // Record transaction
+            $controlNumber = 'SIM-' . strtoupper(uniqid());
+            $stmt = $this->pdo->prepare("
+                INSERT INTO transactions (user_id, amount, water_units, control_number, payment_method, status)
+                VALUES (?, ?, ?, ?, ?, 'completed')
+            ");
+            $stmt->execute([$userId, $totalAmount, $units, $controlNumber, $paymentMethod]);
             
             return [
                 'success' => true,
                 'token' => $tokenCode,
                 'units' => $units,
+                'amount' => $totalAmount,
+                'price_per_unit' => $pricePerUnit,
                 'message' => 'Token generated successfully'
             ];
         } else {
