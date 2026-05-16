@@ -1,0 +1,14 @@
+#include <HTTPClient.h>
+
+void sendUsage(float waterUsed) {
+  HTTPClient http;
+  http.begin("http://your-server.com/smart-water-billing/api/submit_usage.php");
+  http.addHeader("Content-Type", "application/json");
+  String payload = "{\"meter_id\":\"" + meterId + "\",\"water_used\":" + String(waterUsed) + "}";
+  int httpCode = http.POST(payload);
+  if (httpCode > 0) {
+    String response = http.getString();
+    // Parse response to get new_balance and valve_status
+  }
+  http.end();
+}

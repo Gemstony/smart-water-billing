@@ -1,0 +1,16 @@
+#include <HTTPClient.h>
+
+void checkValveStatus() {
+  HTTPClient http;
+  http.begin("http://your-server.com/smart-water-billing/api/get_valve_status.php?meter_id=" + meterId);
+  int httpCode = http.GET();
+  if (httpCode == 200) {
+    String response = http.getString();
+    // Parse JSON (using ArduinoJson library)
+    DynamicJsonDocument doc(256);
+    deserializeJson(doc, response);
+    int command = doc["command"]; // 1 = open, 0 = close
+    digitalWrite(RELAY_PIN, command ? HIGH : LOW); // assuming relay is active high
+  }
+  http.end();
+}

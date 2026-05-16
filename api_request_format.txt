@@ -37,3 +37,14 @@ Body: raw JSON
   "water_used": 5.0
 }
 
+Get Valve Status API => used by water meter to check valve status
+
+using Curl
+curl -X GET "http://localhost/smart-water-billing/api/get_valve_status.php?meter_id=MTR-001"
+
+using Postman
+Method: GET
+
+URL: http://localhost/smart-water-billing/api/get_valve_status.php?meter_id=MTR-001
+
+
