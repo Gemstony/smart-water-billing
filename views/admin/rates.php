@@ -50,7 +50,12 @@ require_once __DIR__ . '/../layout/header.php';
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <h1 class="h3 mb-4">Water Rates (Price per Unit)</h1>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3">Water Rates (Price per Unit)</h1>
+                <a href="/smart-water-billing/admin/dashboard" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
             
             <?php if ($message): ?>
                 <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>

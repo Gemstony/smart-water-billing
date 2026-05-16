@@ -35,7 +35,7 @@ $userRole = $_SESSION['user_role'] ?? 'guest'; // 'admin' or 'customer'
             <ul class="list-unstyled components">
                 <?php if ($userRole === 'admin'): ?>
                     <li>
-                        <a href="admin">
+                        <a href="dashboard">
                             <i class="fas fa-tachometer-alt"></i> Dashboard
                         </a>
                     </li>
@@ -64,6 +64,7 @@ $userRole = $_SESSION['user_role'] ?? 'guest'; // 'admin' or 'customer'
                             <i class="fas fa-dollar-sign"></i> Water Rates
                         </a>
                     </li>
+                    <li><a href="/smart-water-billing/admin/add_user"><i class="fas fa-user-plus"></i> Add Customer</a></li>
                 <?php elseif ($userRole === 'customer'): ?>
                     <li>
                         <a href="dashboard">

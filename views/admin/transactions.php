@@ -17,7 +17,12 @@ require_once __DIR__ . '/../layout/header.php';
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <h1 class="h3 mb-4">All Transactions</h1>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3">All Transactions</h1>
+                <a href="/smart-water-billing/admin/dashboard" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-credit-card"></i> Customer Payments
@@ -43,14 +48,16 @@ require_once __DIR__ . '/../layout/header.php';
                                     <?php foreach ($transactions as $tx): ?>
                                         <tr>
                                             <td><?= $tx['transaction_id'] ?></td>
-                                            <td><?= htmlspecialchars($tx['full_name']) ?><br><small><?= htmlspecialchars($tx['email']) ?></small></td>
+                                            <td><?= htmlspecialchars($tx['full_name']) ?><br><small><?= htmlspecialchars($tx['email']) ?></small>
+                                            </td>
                                             <td><?= htmlspecialchars($tx['meter_id'] ?? '—') ?></td>
                                             <td><?= number_format($tx['amount'], 2) ?></td>
                                             <td><?= $tx['water_units'] ?></td>
                                             <td><?= htmlspecialchars($tx['control_number']) ?></td>
                                             <td><?= $tx['payment_method'] ?></td>
                                             <td>
-                                                <span class="badge bg-<?= $tx['status'] === 'completed' ? 'success' : ($tx['status'] === 'pending' ? 'warning' : 'danger') ?>">
+                                                <span
+                                                    class="badge bg-<?= $tx['status'] === 'completed' ? 'success' : ($tx['status'] === 'pending' ? 'warning' : 'danger') ?>">
                                                     <?= ucfirst($tx['status']) ?>
                                                 </span>
                                             </td>

@@ -61,10 +61,10 @@ require_once __DIR__ . '/../layout/header.php';
                             <i class="fas fa-users-cog"></i> Quick Actions
                         </div>
                         <div class="card-body">
-                            <a href="/smart-water-billing/users" class="btn btn-primary">
+                            <a href="users" class="btn btn-primary">
                                 <i class="fas fa-list"></i> Manage Customers
                             </a>
-                            <a href="#" class="btn btn-secondary">Generate Reports</a>
+                            <a href="reports" class="btn btn-secondary">Generate Reports</a>
                         </div>
                     </div>
                 </div>

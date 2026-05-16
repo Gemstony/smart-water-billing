@@ -17,7 +17,12 @@ require_once __DIR__ . '/../layout/header.php';
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <h1 class="h3 mb-4">All Customer Tokens</h1>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3">All Customer Tokens</h1>
+                <a href="/smart-water-billing/admin/dashboard" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-ticket-alt"></i> Tokens Generated
@@ -53,17 +58,20 @@ require_once __DIR__ . '/../layout/header.php';
                                         ?>
                                         <tr>
                                             <td><code><?= htmlspecialchars($token['token_code']) ?></code></td>
-                                            <td><?= htmlspecialchars($token['full_name']) ?><br><small><?= htmlspecialchars($token['email']) ?></small></td>
+                                            <td><?= htmlspecialchars($token['full_name']) ?><br><small><?= htmlspecialchars($token['email']) ?></small>
+                                            </td>
                                             <td><?= htmlspecialchars($token['meter_id'] ?? '—') ?></td>
                                             <td><?= $token['units_purchased'] ?></td>
                                             <td><?= $status ?></td>
                                             <td><?= date('d M Y H:i', strtotime($token['generated_at'])) ?></td>
-                                            <td><?= $token['expires_at'] ? date('d M Y H:i', strtotime($token['expires_at'])) : 'Never' ?></td>
-                                            <td><?= $token['used_at'] ? date('d M Y H:i', strtotime($token['used_at'])) : '—' ?></td>
+                                            <td><?= $token['expires_at'] ? date('d M Y H:i', strtotime($token['expires_at'])) : 'Never' ?>
+                                            </td>
+                                            <td><?= $token['used_at'] ? date('d M Y H:i', strtotime($token['used_at'])) : '—' ?>
+                                            </td>
                                         </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            ?>
+                                    </tbody>
+                                <?php endforeach; ?>
+                            </table>
                         </div>
                     <?php else: ?>
                         <p class="text-muted">No tokens have been generated yet.</p>

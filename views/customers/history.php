@@ -22,8 +22,13 @@ require_once __DIR__ . '/../layout/header.php';
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <h1 class="h3 mb-4">My History</h1>
-            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3">My History</h1>
+                <a href="/smart-water-billing/dashboard" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+
             <!-- My Transactions -->
             <div class="card mb-4">
                 <div class="card-header">
@@ -51,7 +56,8 @@ require_once __DIR__ . '/../layout/header.php';
                                             <td><?= htmlspecialchars($tx['control_number']) ?></td>
                                             <td><?= $tx['payment_method'] ?></td>
                                             <td>
-                                                <span class="badge bg-<?= $tx['status'] === 'completed' ? 'success' : ($tx['status'] === 'pending' ? 'warning' : 'danger') ?>">
+                                                <span
+                                                    class="badge bg-<?= $tx['status'] === 'completed' ? 'success' : ($tx['status'] === 'pending' ? 'warning' : 'danger') ?>">
                                                     <?= ucfirst($tx['status']) ?>
                                                 </span>
                                             </td>
@@ -66,7 +72,7 @@ require_once __DIR__ . '/../layout/header.php';
                     <?php endif; ?>
                 </div>
             </div>
-            
+
             <!-- My Water Usage -->
             <div class="card">
                 <div class="card-header">

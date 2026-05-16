@@ -20,7 +20,7 @@ require_once __DIR__ . '/../layout/header.php';
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="h3">All Customers</h1>
-                <a href="/smart-water-billing/admin" class="btn btn-secondary">
+                <a href="/smart-water-billing/admin/dashboard" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Back to Dashboard
                 </a>
             </div>
@@ -62,9 +62,13 @@ require_once __DIR__ . '/../layout/header.php';
                                             </td>
                                             <td><?= date('d M Y', strtotime($customer['created_at'])) ?></td>
                                             <td>
-                                                <a href="#" class="btn btn-sm btn-info">View Usage</a>
-                                                <!-- Later: edit, toggle status, etc. -->
+                                                <a href="/smart-water-billing/admin/edit_user?id=<?= $customer['user_id'] ?>"
+                                                    class="btn btn-sm btn-primary">Edit</a>
+                                                <a href="/smart-water-billing/admin/view_customer?id=<?= $customer['user_id'] ?>"
+                                                    class="btn btn-sm btn-info">View History</a>
+                                                <!-- Delete button can be added later -->
                                             </td>
+                                            <!-- Later: edit, toggle status, etc. -->
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
