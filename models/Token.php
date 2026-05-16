@@ -1,53 +1,76 @@
 <?php
 class Token {
-    public $token_id;
-    public $token_code;
-    public $user_id;
-    public $units_purchased;
-    public $is_used;
-    public $generated_at;
-    public $expires_at;
-    public $used_at;
-
-    public function __construct($data = []) {
-        foreach ($data as $key => $value) {
-            $this->$key = $value;
-        }
+    private $pdo;
+    
+    public function __construct($pdo) {
+        $this->pdo = $pdo;
     }
-
-    public function generateCode() {
-        $this->token_code = strtoupper(bin2hex(random_bytes(5)));
-    }
-
-    public function activate($pdo, $userId) {
-        $this->user_id = $userId;
-        $this->is_used = 1;
-        $this->used_at = date('Y-m-d H:i:s');
-        $stmt = $pdo->prepare("UPDATE tokens SET user_id = ?, is_used = 1, used_at = ? WHERE token_id = ?");
-        return $stmt->execute([$userId, $this->used_at, $this->token_id]);
-    }
-
-    public function save($pdo) {
-        $stmt = $pdo->prepare("INSERT INTO tokens (token_code, user_id, units_purchased, is_used, expires_at) VALUES (?, ?, ?, 0, ?)");
-        return $stmt->execute([$this->token_code, $this->user_id, $this->units_purchased, $this->expires_at]);
-    }
-
-    public static function findByCode($pdo, $code) {
-        $stmt = $pdo->prepare("SELECT * FROM tokens WHERE token_code = ?");
+    
+    /**
+     * Generate a unique token code
+     * Format: WTR-XXXX-YYYY (e.g., WTR-8F3A-9B2E)
+     */
+    private function generateUniqueCode() {
+        $prefix = 'WTR';
+        $part1 = strtoupper(substr(bin2hex(random_bytes(2)), 0, 4));
+        $part2 = strtoupper(substr(bin2hex(random_bytes(2)), 0, 4));
+        $code = $prefix . '-' . $part1 . '-' . $part2;
+        
+        // Check uniqueness
+        $stmt = $this->pdo->prepare("SELECT token_id FROM tokens WHERE token_code = ?");
         $stmt->execute([$code]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $row ? new self($row) : null;
+        if ($stmt->fetch()) {
+            // Recursively generate a new one if collision (unlikely)
+            return $this->generateUniqueCode();
+        }
+        return $code;
     }
-
-    public static function getUnusedByUser($pdo, $userId) {
-        $stmt = $pdo->prepare("SELECT * FROM tokens WHERE user_id = ? AND is_used = 0");
-        $stmt->execute([$userId]);
-        return array_map(fn($row) => new self($row), $stmt->fetchAll(PDO::FETCH_ASSOC));
+    
+    /**
+     * Create a new token for a user
+     * @param int $userId
+     * @param int $units
+     * @return string|false The token code or false on failure
+     */
+    public function createToken($userId, $units) {
+        $tokenCode = $this->generateUniqueCode();
+        $expiresAt = date('Y-m-d H:i:s', strtotime('+7 days')); // Token valid for 7 days
+        
+        $stmt = $this->pdo->prepare("
+            INSERT INTO tokens (token_code, user_id, units_purchased, expires_at)
+            VALUES (?, ?, ?, ?)
+        ");
+        if ($stmt->execute([$tokenCode, $userId, $units, $expiresAt])) {
+            return $tokenCode;
+        }
+        return false;
     }
-
-    public static function getByUser($pdo, $userId) {
-        $stmt = $pdo->prepare("SELECT * FROM tokens WHERE user_id = ?");
-        $stmt->execute([$userId]);
-        return array_map(fn($row) => new self($row), $stmt->fetchAll(PDO::FETCH_ASSOC));
+    
+    /**
+     * Find a valid token (not used, not expired)
+     * Will be used in Phase 5
+     */
+    public function findValidToken($tokenCode, $userId) {
+        $stmt = $this->pdo->prepare("
+            SELECT * FROM tokens 
+            WHERE token_code = ? 
+            AND user_id = ? 
+            AND is_used = 0 
+            AND (expires_at IS NULL OR expires_at > NOW())
+        ");
+        $stmt->execute([$tokenCode, $userId]);
+        return $stmt->fetch();
+    }
+    
+    /**
+     * Mark token as used
+     * Will be used in Phase 5
+     */
+    public function markAsUsed($tokenId) {
+        $stmt = $this->pdo->prepare("
+            UPDATE tokens SET is_used = 1, used_at = NOW() 
+            WHERE token_id = ?
+        ");
+        return $stmt->execute([$tokenId]);
     }
 }

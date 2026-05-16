@@ -1,0 +1,16 @@
+using Curl
+curl -X POST http://localhost/smart-water-billing/api/validate_token.php \
+  -H "Content-Type: application/json" \
+  -d '{"token_code":"WTR-XXXX-YYYY","meter_id":"MTR-001"}'
+
+using Postman
+Method: POST
+
+URL: http://localhost/smart-water-billing/api/validate_token.php
+
+Body: raw JSON
+
+{
+  "token_code": "WTR-XXXX-YYYY",
+  "meter_id": "MTR-001"
+}

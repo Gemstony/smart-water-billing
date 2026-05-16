@@ -1,14 +1,75 @@
 <?php
+require_once __DIR__ . '/../models/Token.php';
+require_once __DIR__ . '/../models/Rate.php';
+
 class TokenController {
-    public function purchase($userId, $amount) {
-        // Handle token purchase
+    private $tokenModel;
+    private $pdo;
+    
+    public function __construct($pdo) {
+        $this->pdo = $pdo;
+        $this->tokenModel = new Token($pdo);
     }
-
-    public function validate($tokenCode) {
-        // Validate a token code
+    
+    /**
+     * Generate a token after simulated payment
+     * @param int $userId
+     * @param int $units Number of water units to purchase
+     * @return array ['success' => bool, 'token' => string, 'message' => string]
+     */
+    public function generateToken($userId, $units) {
+        if ($units <= 0) {
+            return ['success' => false, 'message' => 'Invalid number of units'];
+        }
+        
+        // For Phase 4, we simulate successful payment.
+        // In later phases, you would verify actual mobile money payment here.
+        
+        $tokenCode = $this->tokenModel->createToken($userId, $units);
+        if ($tokenCode) {
+            // Optionally record the transaction in `transactions` table
+            $this->recordTransaction($userId, $units, $tokenCode);
+            
+            return [
+                'success' => true,
+                'token' => $tokenCode,
+                'units' => $units,
+                'message' => 'Token generated successfully'
+            ];
+        } else {
+            return [
+                'success' => false,
+                'message' => 'Failed to generate token'
+            ];
+        }
     }
-
-    public function getAvailableTokens() {
-        // Return available token denominations
+    
+    /**
+     * Record a transaction (simulated)
+     */
+    private function recordTransaction($userId, $units, $tokenCode) {
+        // For now, we need a rate per unit. We'll use a simple method: get current rate from rates table or default.
+        $rate = $this->getCurrentRate();
+        $amount = $units * $rate;
+        $controlNumber = 'SIM-' . strtoupper(uniqid());
+        
+        $stmt = $this->pdo->prepare("
+            INSERT INTO transactions (user_id, amount, water_units, control_number, payment_method, status)
+            VALUES (?, ?, ?, ?, 'Simulated', 'completed')
+        ");
+        $stmt->execute([$userId, $amount, $units, $controlNumber]);
+    }
+    
+    /**
+     * Get current price per unit from rates table, or default 1000 TZS/unit
+     */
+    private function getCurrentRate() {
+        $stmt = $this->pdo->prepare("SELECT price_per_unit FROM rates WHERE effective_date <= CURDATE() ORDER BY effective_date DESC LIMIT 1");
+        $stmt->execute();
+        $rate = $stmt->fetch();
+        if ($rate) {
+            return $rate['price_per_unit'];
+        }
+        return 1000; // Default rate (TZS per unit)
     }
 }

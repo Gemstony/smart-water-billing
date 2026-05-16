@@ -50,5 +50,12 @@ class User {
         $stmt->execute([$meterId]);
         return $stmt->fetch();
     }
+
+    // Get all customers (users with role 'customer')
+    public function getAllCustomers() {
+        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE role = 'customer' ORDER BY created_at DESC");
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
 }
 ?>

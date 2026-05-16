@@ -15,7 +15,7 @@ body {
 #sidebar {
     min-width: 260px;
     max-width: 260px;
-    background: #1e2a3e;
+    background: #0D52C1;
     color: #cbd5e1;
     transition: all 0.3s;
     min-height: 100vh;
@@ -28,7 +28,7 @@ body {
 
 #sidebar .sidebar-header {
     padding: 1.2rem 1rem;
-    background: #0f172a;
+    background: #0A429E;
     border-bottom: 1px solid #334155;
 }
 
@@ -46,13 +46,13 @@ body {
 }
 
 #sidebar ul li a:hover {
-    background: #334155;
+    background: #1A62D6;
     color: white;
 }
 
 #sidebar ul li.active > a {
-    background: #0d9488;
-    color: white;
+    background: #00E5FF;
+    color: #334155;
     border-radius: 0 20px 20px 0;
     margin-right: 10px;
 }
