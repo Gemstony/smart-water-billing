@@ -20,8 +20,8 @@ require_once __DIR__ . '/../layout/header.php';
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="h3">All Customers</h1>
-                <a href="/smart-water-billing/admin/dashboard" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                <a href="/smart-water-billing/admin/add_user" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Add Customer
                 </a>
             </div>
 

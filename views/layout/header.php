@@ -30,25 +30,30 @@ $userRole = $_SESSION['user_role'] ?? 'guest'; // 'admin' or 'customer'
         <nav id="sidebar">
             <div class="sidebar-header">
                 <h4><i class="fas fa-tint"></i> Water Billing</h4>
-                <small>Smart System</small>
+                <small>Smart Water Billing System</small>
             </div>
             <ul class="list-unstyled components">
                 <?php if ($userRole === 'admin'): ?>
+                    <!-- Main -->
                     <li>
-                        <a href="dashboard">
+                        <a href="/smart-water-billing/admin/dashboard">
                             <i class="fas fa-tachometer-alt"></i> Dashboard
                         </a>
                     </li>
+                    
+                    <li class="sidebar-header mt-3 mb-2 text-muted text-uppercase small">Customer Management</li>
                     <li>
-                        <a href="users">
-                            <i class="fas fa-users"></i> Users
+                        <a href="/smart-water-billing/admin/users">
+                            <i class="fas fa-users"></i> All Customers
                         </a>
                     </li>
                     <li>
-                        <a href="reports">
-                            <i class="fas fa-chart-line"></i> Reports
+                        <a href="/smart-water-billing/admin/add_user">
+                            <i class="fas fa-user-plus"></i> Add Customer
                         </a>
                     </li>
+                    
+                    <li class="sidebar-header mt-3 mb-2 text-muted text-uppercase small">Transactions & Tokens</li>
                     <li>
                         <a href="/smart-water-billing/admin/transactions">
                             <i class="fas fa-credit-card"></i> Transactions
@@ -59,35 +64,46 @@ $userRole = $_SESSION['user_role'] ?? 'guest'; // 'admin' or 'customer'
                             <i class="fas fa-ticket-alt"></i> Customer Tokens
                         </a>
                     </li>
+                    
+                    <li class="sidebar-header mt-3 mb-2 text-muted text-uppercase small">Reports & Settings</li>
+                    <li>
+                        <a href="/smart-water-billing/admin/reports">
+                            <i class="fas fa-chart-line"></i> Reports
+                        </a>
+                    </li>
                     <li>
                         <a href="/smart-water-billing/admin/rates">
                             <i class="fas fa-dollar-sign"></i> Water Rates
                         </a>
                     </li>
-                    <li><a href="/smart-water-billing/admin/add_user"><i class="fas fa-user-plus"></i> Add Customer</a></li>
                 <?php elseif ($userRole === 'customer'): ?>
+                    <!-- Main -->
                     <li>
-                        <a href="dashboard">
+                        <a href="/smart-water-billing/dashboard">
                             <i class="fas fa-tachometer-alt"></i> Dashboard
                         </a>
                     </li>
+                    
+                    <li class="sidebar-header mt-3 mb-2 text-muted text-uppercase small">Purchase</li>
                     <li>
-                        <a href="buy-token">
+                        <a href="/smart-water-billing/buy-token">
                             <i class="fas fa-ticket-alt"></i> Buy Token
                         </a>
                     </li>
+                    
+                    <li class="sidebar-header mt-3 mb-2 text-muted text-uppercase small">History</li>
                     <li>
-                        <a href="history">
-                            <i class="fas fa-history"></i> History
+                        <a href="/smart-water-billing/history">
+                            <i class="fas fa-receipt"></i> Payment History
                         </a>
                     </li>
                     <li>
-                        <a href="tokens">
+                        <a href="/smart-water-billing/tokens">
                             <i class="fas fa-history"></i> Token History
                         </a>
                     </li>
                 <?php else: ?>
-                    <li><a href="login"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                    <li><a href="/smart-water-billing/login"><i class="fas fa-sign-in-alt"></i> Login</a></li>
                 <?php endif; ?>
             </ul>
             <!-- Optional logout button at bottom -->
