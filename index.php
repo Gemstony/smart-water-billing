@@ -19,13 +19,16 @@ if ($request === '') $request = '/';
 // Route definitions
 switch ($request) {
     case '/':
+        // Show public welcome page
+        require_once __DIR__ . '/views/welcome.php';
+        break;
+
     case '/login':
         if ($method === 'POST') {
             // Handle login submission
             $email = $_POST['email'] ?? '';
             $password = $_POST['password'] ?? '';
             if ($auth->login($email, $password)) {
-                // Redirect based on role
                 if ($_SESSION['user_role'] === 'admin') {
                     header('Location: /smart-water-billing/admin/dashboard');
                 } else {
@@ -36,10 +39,10 @@ switch ($request) {
             }
             exit;
         } else {
-            // Show login page
             require_once __DIR__ . '/views/login.php';
         }
         break;
+
 
     case '/dashboard':
         $auth->requireLogin();
