@@ -88,4 +88,19 @@ public function getByUser($userId) {
     $stmt->execute([$userId]);
     return $stmt->fetchAll();
 }
+
+/**
+ * Get all tokens with user details (admin use)
+ * @return array
+ */
+public function getAllWithUsers() {
+    $stmt = $this->pdo->prepare("
+        SELECT t.*, u.full_name, u.email, u.meter_id 
+        FROM tokens t
+        JOIN users u ON t.user_id = u.user_id
+        ORDER BY t.generated_at DESC
+    ");
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
 }
