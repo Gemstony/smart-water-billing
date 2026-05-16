@@ -8,6 +8,46 @@ class User {
         $this->pdo = $pdo;
     }
     
+    // Update user details
+    public function updateUser($userId, $data) {
+        $stmt = $this->pdo->prepare("
+            UPDATE users SET 
+                full_name = ?, 
+                email = ?, 
+                phone = ?, 
+                meter_id = ?, 
+                account_balance = ?, 
+                is_active = ?
+            WHERE user_id = ?
+        ");
+        return $stmt->execute([
+            $data['full_name'],
+            $data['email'],
+            $data['phone'],
+            $data['meter_id'] ?? null,
+            $data['account_balance'] ?? 0,
+            $data['is_active'] ?? 1,
+            $userId
+        ]);
+    }
+
+    // Create new user (admin adds customer)
+    public function createUser($data) {
+        $stmt = $this->pdo->prepare("
+            INSERT INTO users (full_name, email, phone, password_hash, meter_id, account_balance, role, is_active)
+            VALUES (?, ?, ?, ?, ?, ?, 'customer', ?)
+        ");
+        $defaultPassword = password_hash('password123', PASSWORD_DEFAULT); // default password
+        return $stmt->execute([
+            $data['full_name'],
+            $data['email'],
+            $data['phone'],
+            $data['password_hash'] ?? $defaultPassword,
+            $data['meter_id'] ?? null,
+            $data['account_balance'] ?? 0,
+            $data['is_active'] ?? 1
+        ]);
+    }
     // Find user by email (for login)
     public function findByEmail($email) {
         $stmt = $this->pdo->prepare("SELECT * FROM users WHERE email = ?");

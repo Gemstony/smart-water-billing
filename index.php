@@ -97,6 +97,7 @@ switch ($request) {
         $auth->requireAdmin();
         require_once __DIR__ . '/views/admin/rates.php';
         break;
+        
     default:
         http_response_code(404);
         echo 'Page not found';
