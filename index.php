@@ -57,6 +57,11 @@ switch ($request) {
         require_once __DIR__ . '/views/customers/buy_token.php';
         break;
 
+    case '/tokens':
+        $auth->requireLogin();
+        require_once __DIR__ . '/views/customers/token_history.php';
+        break;
+
     case '/admin':
         $auth->requireAdmin();
         require_once __DIR__ . '/views/admin/dashboard.php';

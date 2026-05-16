@@ -40,4 +40,34 @@ class WaterUsage {
         $row = $stmt->fetch();
         return $row['total'] ?? 0;
     }
+
+    /**
+     * Get all water usage logs (admin use)
+     * @return array
+     */
+    public function getAll() {
+        $stmt = $this->pdo->prepare("
+            SELECT w.*, u.full_name, u.email, u.meter_id 
+            FROM water_usage w
+            JOIN users u ON w.user_id = u.user_id
+            ORDER BY w.log_time DESC
+        ");
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Get water usage logs for a specific user (customer history)
+     * @param int $userId
+     * @return array
+     */
+    public function getByUser($userId) {
+        $stmt = $this->pdo->prepare("
+            SELECT * FROM water_usage 
+            WHERE user_id = ? 
+            ORDER BY log_time DESC
+        ");
+        $stmt->execute([$userId]);
+        return $stmt->fetchAll();
+    }
 }

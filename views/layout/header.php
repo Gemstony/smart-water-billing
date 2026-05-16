@@ -63,6 +63,11 @@ $userRole = $_SESSION['user_role'] ?? 'guest'; // 'admin' or 'customer'
                         <i class="fas fa-history"></i> History
                     </a>
                 </li>
+                <li>
+                    <a href="tokens">
+                        <i class="fas fa-history"></i> Token History
+                    </a>
+                </li>
             <?php else: ?>
                 <li><a href="login"><i class="fas fa-sign-in-alt"></i> Login</a></li>
             <?php endif; ?>

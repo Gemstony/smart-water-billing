@@ -73,4 +73,19 @@ class Token {
         ");
         return $stmt->execute([$tokenId]);
     }
+
+    /**
+ * Get all tokens for a specific user (customer token history)
+ * @param int $userId
+ * @return array
+ */
+public function getByUser($userId) {
+    $stmt = $this->pdo->prepare("
+        SELECT * FROM tokens 
+        WHERE user_id = ? 
+        ORDER BY generated_at DESC
+    ");
+    $stmt->execute([$userId]);
+    return $stmt->fetchAll();
+}
 }
