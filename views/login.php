@@ -15,10 +15,7 @@ if (isset($_SESSION['user_id'])) {
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // We will handle login via index.php routing, but keep form action to current page
-    // Actually our index.php will catch POST to /smart-water-billing/login
-    // So this file will not process POST directly; we'll let index.php handle.
-    // But for simplicity, we can leave action empty and rely on index.php.
+
 }
 ?>
 <!DOCTYPE html>

@@ -74,7 +74,7 @@ require_once __DIR__ . '/../layout/header.php';
             </div>
 
             <!-- Chart Row -->
-            <div class="row mb-4">
+            <!-- <div class="row mb-4">
                 <div class="col-md-6 mb-3">
                     <div class="card h-100">
                         <div class="card-header">Revenue (Last 30 Days)</div>
@@ -91,7 +91,7 @@ require_once __DIR__ . '/../layout/header.php';
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Second Row: Top Customers & Active/Inactive -->
             <div class="row mb-4">

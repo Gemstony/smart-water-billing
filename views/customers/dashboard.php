@@ -77,7 +77,7 @@ require_once __DIR__ . '/../layout/header.php';
             </div>
             
             <!-- Chart Section -->
-            <div class="row mb-4">
+            <!-- <div class="row mb-4">
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">Water Consumption (Last 7 Days)</div>
@@ -87,7 +87,7 @@ require_once __DIR__ . '/../layout/header.php';
                     </div>
                 </div>
             </div>
-            
+             -->
             <!-- Recent Transactions and Usage -->
             <div class="row">
                 <div class="col-md-6 mb-3">

@@ -103,4 +103,39 @@ public function getAllWithUsers() {
     $stmt->execute();
     return $stmt->fetchAll();
 }
+
+/**
+ * Get paginated tokens with user details (admin use)
+ * @param int $page
+ * @param int $limit
+ * @return array
+ */
+public function getAllWithUsersPaginated($page = 1, $limit = 10) {
+    $offset = ($page - 1) * $limit;
+    $stmt = $this->pdo->prepare("
+        SELECT t.*, u.full_name, u.email, u.meter_id 
+        FROM tokens t
+        JOIN users u ON t.user_id = u.user_id
+        ORDER BY t.generated_at DESC
+        LIMIT :limit OFFSET :offset
+    ");
+    $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+
+/**
+ * Count total tokens with user details (for pagination)
+ * @return int
+ */
+public function countAllWithUsers() {
+    $stmt = $this->pdo->prepare("
+        SELECT COUNT(*) as total 
+        FROM tokens t
+        JOIN users u ON t.user_id = u.user_id
+    ");
+    $stmt->execute();
+    return (int)$stmt->fetch()['total'];
+}
 }

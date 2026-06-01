@@ -53,7 +53,7 @@ try {
     
     // If balance goes negative, we can either reject or allow and then shut off valve later
     // For now, we allow negative, but we'll flag for valve closure
-    $valveStatus = ($newBalance >= 0) ? 'open' : 'closed';
+    $valveStatus = ($newBalance > 0) ? 'open' : 'closed';
     
     // Update user's balance
     $userModel->updateBalance($user['user_id'], $newBalance);

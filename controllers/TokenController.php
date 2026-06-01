@@ -14,13 +14,7 @@ class TokenController {
     }
     
     /**
-     * Generate a token after simulated payment
-     * @param int $userId
-     * @param int $units Number of water units to purchase
-     * @return array ['success' => bool, 'token' => string, 'message' => string]
-     */
- /**
-     * Generate a token after payment simulation
+     * Generate a token after payment
      * @param int $userId
      * @param int $units
      * @param string $paymentMethod (e.g., 'Simulated', 'M-Pesa', etc.)
@@ -33,23 +27,28 @@ class TokenController {
         
         // Get current rate
         $rate = $this->rateModel->getCurrent();
-        $pricePerUnit = $rate ? $rate['price_per_unit'] : 1000; // fallback
+        $pricePerUnit = $rate ? $rate['price_per_unit'] : 1000;
         $totalAmount = $units * $pricePerUnit;
         
-        // Simulate payment success (later you can integrate real API)
-        // For now, assume payment is successful.
-        
-        // Generate token
+        // Generate token (check if it already exists for this transaction)
         $tokenCode = $this->tokenModel->createToken($userId, $units);
-        if ($tokenCode) {
-            // Record transaction
-            $controlNumber = 'SIM-' . strtoupper(uniqid());
-            $stmt = $this->pdo->prepare("
-                INSERT INTO transactions (user_id, amount, water_units, control_number, payment_method, status)
-                VALUES (?, ?, ?, ?, ?, 'completed')
-            ");
-            $stmt->execute([$userId, $totalAmount, $units, $controlNumber, $paymentMethod]);
-            
+        if (!$tokenCode) {
+            return ['success' => false, 'message' => 'Failed to generate token'];
+        }
+        
+        // Check if a transaction already exists for this token (to prevent double processing)
+        $stmt = $this->pdo->prepare("
+            SELECT COUNT(*) as count FROM transactions 
+            WHERE user_id = ? AND water_units = ? AND status = 'completed'
+        ");
+        $stmt->execute([$userId, $units]);
+        $existing = $stmt->fetch();
+        
+        if ($existing['count'] > 0) {
+            // Update user's balance if not already done
+            $userModel = new User($this->pdo);
+            $user = $userModel->findById($userId);
+            $userModel->updateBalance($userId, $user['account_balance'] + $units);
             return [
                 'success' => true,
                 'token' => $tokenCode,
@@ -58,12 +57,29 @@ class TokenController {
                 'price_per_unit' => $pricePerUnit,
                 'message' => 'Token generated successfully'
             ];
-        } else {
-            return [
-                'success' => false,
-                'message' => 'Failed to generate token'
-            ];
         }
+        
+        // Record transaction if not exists
+        $controlNumber = ($paymentMethod === 'Simulated') ? 'SIM-' . strtoupper(uniqid()) : 'AZM-' . strtoupper(uniqid());
+        $stmt = $this->pdo->prepare("
+            INSERT INTO transactions (user_id, amount, water_units, control_number, payment_method, status)
+            VALUES (?, ?, ?, ?, ?, 'completed')
+        ");
+        $stmt->execute([$userId, $totalAmount, $units, $controlNumber, $paymentMethod]);
+        
+        // Update user's water balance
+        $userModel = new User($this->pdo);
+        $user = $userModel->findById($userId);
+        $userModel->updateBalance($userId, $user['account_balance'] + $units);
+        
+        return [
+            'success' => true,
+            'token' => $tokenCode,
+            'units' => $units,
+            'amount' => $totalAmount,
+            'price_per_unit' => $pricePerUnit,
+            'message' => 'Token generated successfully'
+        ];
     }
     
     /**

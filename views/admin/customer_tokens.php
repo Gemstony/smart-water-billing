@@ -8,7 +8,13 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 }
 
 $tokenModel = new Token($pdo);
-$tokens = $tokenModel->getAllWithUsers();
+
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$limit = 10;
+$totalTokens = $tokenModel->countAllWithUsers();
+$totalPages = max(1, ceil($totalTokens / $limit));
+$page = min($page, $totalPages);
+$tokens = $tokenModel->getAllWithUsersPaginated($page, $limit);
 
 $pageTitle = 'Customer Tokens';
 require_once __DIR__ . '/../layout/header.php';
@@ -73,6 +79,23 @@ require_once __DIR__ . '/../layout/header.php';
                                 <?php endforeach; ?>
                             </table>
                         </div>
+                        <?php if ($totalPages > 1): ?>
+                            <nav aria-label="Tokens pagination">
+                                <ul class="pagination justify-content-center mb-0">
+                                    <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+                                        <a class="page-link" href="?page=<?= $page - 1 ?>">Previous</a>
+                                    </li>
+                                    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                                        <li class="page-item <?= $i === $page ? 'active' : '' ?>">
+                                            <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
+                                        </li>
+                                    <?php endfor; ?>
+                                    <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+                                        <a class="page-link" href="?page=<?= $page + 1 ?>">Next</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        <?php endif; ?>
                     <?php else: ?>
                         <p class="text-muted">No tokens have been generated yet.</p>
                     <?php endif; ?>

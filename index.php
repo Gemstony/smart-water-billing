@@ -116,6 +116,10 @@ switch ($request) {
         $auth->requireAdmin();
         require_once __DIR__ . '/views/admin/view_customer.php';
         break;
+    case '/api/azampay_webhook':
+        // Webhook endpoint doesn't need authentication
+        require_once __DIR__ . '/api/azampay_webhook.php';
+        break;
     default:
         http_response_code(404);
         echo 'Page not found';
