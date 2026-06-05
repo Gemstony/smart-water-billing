@@ -106,7 +106,7 @@ require_once __DIR__ . '/../layout/header.php';
                                                 <td><?= number_format($tx['amount'], 2) ?></td>
                                                 <td><?= $tx['water_units'] ?></td>
                                                 <td><?= date('d M H:i', strtotime($tx['created_at'])) ?></td>
-                                                <td><span class="badge bg-<?= $tx['status'] === 'completed' ? 'success' : 'warning' ?>"><?= $tx['status'] ?></span></td>
+                                                <td><span class="badge bg-<?= $tx['status'] === 'completed' ? 'success' : ($tx['status'] === 'failed' ? 'danger' : 'warning') ?>"><?= $tx['status'] ?></span></td>
                                             </tr>
                                             <?php endforeach; ?>
                                         </tbody>

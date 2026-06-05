@@ -146,7 +146,7 @@ require_once __DIR__ . '/../layout/header.php';
                                 <div class="mb-3">
                                     <label class="form-label">Payment Method</label>
                                     <select class="form-select" name="provider" required>
-                                        <option value="Simulated">Simulated (Demo)</option>
+                                        <option value="">Select Provider</option>
                                         <option value="Mpesa">M-Pesa</option>
                                         <option value="Tigo">Tigo Pesa</option>
                                         <option value="Airtel">Airtel Money</option>
