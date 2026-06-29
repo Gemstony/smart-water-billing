@@ -129,8 +129,9 @@ require_once __DIR__ . '/../layout/header.php';
                                     </div>
                                     <div class="form-text">Enter your mobile number (without 0 or +255 prefix)</div>
                                 </div>
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="fas fa-mobile-alt"></i> Pay with Mobile Money
+                                <button type="submit" class="btn btn-primary w-100" id="amountSubmitBtn">
+                                    <span class="btn-text"><i class="fas fa-mobile-alt"></i> Pay with Mobile Money</span>
+                                    <span class="btn-loading d-none" aria-hidden="true"><span class="spinner-border spinner-border-sm me-1" role="status"></span> Processing...</span>
                                 </button>
                             </form>
                         </div>
@@ -160,8 +161,9 @@ require_once __DIR__ . '/../layout/header.php';
                                     </div>
                                     <div class="form-text">Required for M-Pesa, Tigo Pesa, or Airtel Money</div>
                                 </div>
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="fas fa-ticket-alt"></i> Generate Token
+                                <button type="submit" class="btn btn-primary w-100" id="unitsSubmitBtn">
+                                    <span class="btn-text"><i class="fas fa-ticket-alt"></i> Generate Token</span>
+                                    <span class="btn-loading d-none" aria-hidden="true"><span class="spinner-border spinner-border-sm me-1" role="status"></span> Processing...</span>
                                 </button>
                             </form>
                         </div>
@@ -189,6 +191,22 @@ require_once __DIR__ . '/../layout/header.php';
             }
         });
     }
+
+    function disableFormSubmit(button) {
+        if (!button) return;
+        button.disabled = true;
+        const textSpan = button.querySelector('.btn-text');
+        const loadingSpan = button.querySelector('.btn-loading');
+        if (textSpan) textSpan.classList.add('d-none');
+        if (loadingSpan) loadingSpan.classList.remove('d-none');
+    }
+
+    document.querySelectorAll('form').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            const button = form.querySelector('button[type="submit"]');
+            disableFormSubmit(button);
+        });
+    });
 </script>
 
 <?php require_once __DIR__ . '/../layout/footer.php'; ?>

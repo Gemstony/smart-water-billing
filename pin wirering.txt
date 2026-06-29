@@ -1,0 +1,39 @@
+Quick Reference Table
+Component	Pin	ESP32 Pin Label	Breadboard Row
+LCD (I2C)	VCC	VIN	Positive rail
+GND	GND	Negative rail
+SDA	D21	Row
+SCL	D22	Row
+Keypad	R1	D13	Row
+R2	D12	Row
+R3	D14	Row
+R4	D27	Row
+C1	D26	Row
+C2	D25	Row
+C3	D33	Row
+C4	D32	Row
+Relay Module	VCC	VIN	Positive rail
+GND	GND	Negative rail
+IN	D5	Row
+Flow Sensor	Red (VCC)	3V3	Row
+Black (GND)	GND	Negative rail
+Yellow (Signal)	D4	Row
+Solenoid Valve	Positive (+)	Relay COM	–
+Negative (-)	Power supply GND	–
+12V Power Supply	Positive (+)	Relay COM	–
+Negative (-)	Relay NO (to valve)	–
+Flyback Diode	Cathode (stripe)	Valve Positive (+)	–
+Anode (no stripe)	Valve Negative (-)	–
+
+
+    // YF-S201: ~450 pulses per liter => 7.5 pulses per liter per second = 7.5 pulses = 1 L/min?
+    // Actually: 1 liter = 450 pulses. So pulses per second = (liters per second)*450 => liters per second = pulses/450
+    // liters per minute = (pulses/450)*60 = pulses * (60/450) = pulses * 0.13333
+
+
+
+side one:
+3V3, GND, D15, D2, D4, D16, D17, D5, D18, D19, D21, RX0, TX0, D22, D23
+
+side two:
+VIN, GND, D13, D12, D14, D27, D26, D25, D33, D32, D35, D34, VN, VP, EN

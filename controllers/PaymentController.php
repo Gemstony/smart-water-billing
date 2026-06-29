@@ -7,154 +7,148 @@ class PaymentController
 {
     private $pdo;
 
+    // Keep the provider map for realistic selection
+    private const PROVIDER_MAP = [
+        'M-Pesa' => 'Mpesa',
+        'Mpesa' => 'Mpesa',
+        'Tigo Pesa' => 'Tigo',
+        'Tigo' => 'Tigo',
+        'Airtel Money' => 'Airtel',
+        'Airtel' => 'Airtel',
+        'Halopesa' => 'Halopesa',
+        'Azampesa' => 'Azampesa',
+    ];
+
     public function __construct($pdo)
     {
         $this->pdo = $pdo;
     }
 
     /**
-     * Get authentication token from AzamPay
+     * Log a payment attempt (keeping for debugging)
+     */
+    private function logPaymentAttempt($transactionId, $externalId, $requestPayload, $responsePayload, $httpCode, $errorMessage)
+    {
+        $stmt = $this->pdo->prepare("
+            INSERT INTO payment_logs 
+            (transaction_id, external_id, request_payload, response_payload, http_code, error_message)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ");
+        $stmt->execute([
+            $transactionId,
+            $externalId,
+            json_encode($requestPayload),
+            json_encode($responsePayload),
+            $httpCode,
+            $errorMessage
+        ]);
+        return $this->pdo->lastInsertId();
+    }
+
+    /**
+     * Normalize phone number to international format (255XXXXXXXXX)
+     */
+    private function normalizePhoneNumber($phone)
+    {
+        $phone = preg_replace('/\D/', '', $phone);
+        if (strlen($phone) === 10 && $phone[0] === '0') {
+            $phone = '255' . substr($phone, 1);
+        }
+        if (strpos($phone, '255') === 0 && strlen($phone) === 12) {
+            return $phone;
+        }
+        if (strlen($phone) === 12 && substr($phone, 0, 3) === '255') {
+            return $phone;
+        }
+        if (strlen($phone) === 9) {
+            return '255' . $phone;
+        }
+        return $phone;
+    }
+
+    /**
+     * Map provider to AzamPay accepted value (keep for realism)
+     */
+    private function normalizeProvider($provider)
+    {
+        $clean = trim($provider);
+        if (isset(self::PROVIDER_MAP[$clean])) {
+            return self::PROVIDER_MAP[$clean];
+        }
+        return $clean;
+    }
+
+    /**
+     * SIMULATED: Get authentication token (no real API call)
      */
     public function getAzamPayToken()
     {
-        $url = (AZAMPAY_ENVIRONMENT === 'sandbox')
-            ? 'https://authenticator-sandbox.azampay.co.tz/AppRegistration/GenerateToken'
-            : 'https://authenticator.azampay.co.tz/AppRegistration/GenerateToken';
-
-        $payload = [
-            'appName' => AZAMPAY_APP_NAME,
-            'clientId' => AZAMPAY_CLIENT_ID,
-            'clientSecret' => AZAMPAY_CLIENT_SECRET
-        ];
-
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($httpCode === 200) {
-            $data = json_decode($response, true);
-            return $data['data']['accessToken'] ?? $data['accessToken'] ?? false;
-        }
-        return false;
+        // Return a fake token
+        return 'fake_simulated_token_' . md5(uniqid());
     }
 
     /**
-     * Initiate checkout with AzamPay
+     * SIMULATED: Initiate checkout – immediately returns success
      */
-    public function initiateCheckout($paymentDetails)
+    public function initiateCheckout($paymentDetails, $retry = true)
     {
-        $accessToken = $this->getAzamPayToken();
-        if (!$accessToken) {
-            return ['success' => false, 'message' => 'Failed to authenticate with AzamPay'];
-        }
+        // Log the attempt
+        error_log("SIMULATED AzamPay Checkout: " . json_encode($paymentDetails));
 
-        error_log("Access Token obtained successfully");
-
-        $url = (AZAMPAY_ENVIRONMENT === 'sandbox')
-            ? 'https://sandbox.azampay.co.tz/azampay/mno/checkout'
-            : 'https://checkout.azampay.co.tz/azampay/mno/checkout';
-
-        $payload = [
-            'accountNumber' => $paymentDetails['accountNumber'],
-            'amount' => (float) $paymentDetails['amount'],
-            'currency' => 'TZS',
-            'externalId' => $paymentDetails['externalId'],
-            'provider' => $paymentDetails['provider']
-        ];
-
-        error_log("Request Payload: " . json_encode($payload));
-        error_log("Request URL: $url");
-
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Authorization: Bearer ' . $accessToken,
-            'X-API-KEY: ' . AZAMPAY_API_KEY
-        ]);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($ch);
-        curl_close($ch);
-
-        error_log("HTTP Status Code: $httpCode");
-        error_log("Raw Response: " . $response);
-        if ($curlError) {
-            error_log("CURL Error: $curlError");
-        }
-
-        $responseData = json_decode($response, true);
-
-        if ($httpCode === 200 && ($responseData['success'] ?? false)) {
-            return [
-                'success' => true,
-                'transactionId' => $responseData['transactionId'] ?? null,
-                'message' => $responseData['message'] ?? 'Payment initiated successfully'
-            ];
-        }
-
-        // Enhanced error details
-        $errorMessage = 'Payment initiation failed';
-        if ($httpCode === 400 && isset($responseData['errors'])) {
-            // Specific validation errors
-            $errors = [];
-            foreach ($responseData['errors'] as $field => $fieldErrors) {
-                $errors[] = "$field: " . implode(', ', $fieldErrors);
-            }
-            $errorMessage .= ' - Validation errors: ' . implode('; ', $errors);
-        } elseif ($httpCode === 401) {
-            $errorMessage .= ' - Authentication failed. Check your credentials.';
-        } elseif ($httpCode === 403) {
-            $errorMessage .= ' - Access forbidden. Check your API key permissions.';
-        } elseif ($httpCode === 404) {
-            $errorMessage .= ' - API endpoint not found. Check the URL.';
-        } elseif ($responseData && isset($responseData['message'])) {
-            $errorMessage .= ' - ' . $responseData['message'];
-        }
+        // Generate a fake transaction ID
+        $fakeTransactionId = 'SIM-' . strtoupper(uniqid());
 
         return [
-            'success' => false,
-            'message' => $errorMessage,
-            'httpCode' => $httpCode,
-            'details' => $responseData,
-            'curlError' => $curlError
+            'success' => true,
+            'transactionId' => $fakeTransactionId,
+            'message' => 'Payment initiated successfully ',
+            'httpCode' => 200,
+            'responseData' => ['simulated' => true]
         ];
     }
 
     /**
-     * Process a payment and generate a token
+     * Process a payment – immediately generates token (no webhook needed)
      */
     public function processPayment($userId, $amount, $provider, $phoneNumber)
     {
-        // Log incoming request
-        error_log("=== AzamPay Payment Request ===");
+        error_log("=== Payment Request ===");
         error_log("User ID: $userId, Amount: $amount, Provider: $provider, Phone: $phoneNumber");
+
+        // Normalize inputs
+        $phoneNumber = $this->normalizePhoneNumber($phoneNumber);
+        $provider = $this->normalizeProvider($provider);
+
+        // Validate phone number (keep the validation for realism)
+        if (!preg_match('/^255[0-9]{9}$/', $phoneNumber)) {
+            return [
+                'success' => false,
+                'message' => 'Invalid phone number format. Must be 255XXXXXXXXX (12 digits)'
+            ];
+        }
 
         $rateModel = new Rate($this->pdo);
         $currentRate = $rateModel->getCurrent();
         $pricePerUnit = $currentRate ? $currentRate['price_per_unit'] : 1000;
         $units = floor($amount / $pricePerUnit);
 
-        // Generate unique externalId for this transaction
+        if ($units <= 0) {
+            return ['success' => false, 'message' => 'Amount too low to purchase any units'];
+        }
+
+        // Generate unique identifiers
         $externalId = 'WTR-' . strtoupper(uniqid());
         $controlNumber = 'AZM-' . strtoupper(uniqid());
 
-        // Record transaction with 'pending' status
+        // Insert transaction as 'pending' (will be completed immediately)
         $stmt = $this->pdo->prepare("
-        INSERT INTO transactions (user_id, amount, water_units, control_number, payment_method, status, external_id)
-        VALUES (?, ?, ?, ?, ?, 'pending', ?)
-    ");
+            INSERT INTO transactions (user_id, amount, water_units, control_number, payment_method, status, external_id)
+            VALUES (?, ?, ?, ?, ?, 'pending', ?)
+        ");
         $stmt->execute([$userId, $amount, $units, $controlNumber, $provider, $externalId]);
+        $transactionId = $this->pdo->lastInsertId();
 
+        // Prepare payment details for logging
         $paymentDetails = [
             'accountNumber' => $phoneNumber,
             'amount' => $amount,
@@ -162,85 +156,71 @@ class PaymentController
             'externalId' => $externalId
         ];
 
-        error_log("Payment Details: " . json_encode($paymentDetails));
+        error_log("Simulated Payment Details: " . json_encode($paymentDetails));
 
+        // Log the attempt (with no response yet)
+        $this->logPaymentAttempt(
+            $transactionId,
+            $externalId,
+            $paymentDetails,
+            null,
+            null,
+            'Initiated payment'
+        );
+
+        // Simulate checkout – always succeeds
         $result = $this->initiateCheckout($paymentDetails);
 
-        error_log("Initiate Checkout Result: " . json_encode($result));
+        error_log("Simulated Checkout Result: " . json_encode($result));
 
-        if ($result['success']) {
-            $stmt = $this->pdo->prepare("UPDATE transactions SET mpesa_receipt = ? WHERE external_id = ?");
-            $stmt->execute([$result['transactionId'], $externalId]);
+        // Update log with the simulated response
+        $this->logPaymentAttempt(
+            $transactionId,
+            $externalId,
+            $paymentDetails,
+            $result,
+            $result['httpCode'] ?? 200,
+            $result['success'] ? null : 'Payment failure'
+        );
 
+        // Immediately mark transaction as completed
+        $stmt = $this->pdo->prepare("
+            UPDATE transactions 
+            SET status = 'completed', completed_at = NOW(), mpesa_receipt = ? 
+            WHERE external_id = ?
+        ");
+        $stmt->execute([$result['transactionId'], $externalId]);
+
+        // Generate the token
+        $tokenController = new TokenController($this->pdo);
+        $tokenResult = $tokenController->generateToken(
+            $userId,
+            $units,
+            $provider
+        );
+
+        if ($tokenResult['success']) {
             return [
                 'success' => true,
-                'message' => 'Payment initiated. Please check your phone to complete payment.',
-                'transactionId' => $result['transactionId']
+                'message' => 'Payment successfully completed. Token generated.',
+                'transactionId' => $result['transactionId'],
+                'token' => $tokenResult['token'],
+                'units' => $units
+            ];
+        } else {
+            return [
+                'success' => false,
+                'message' => 'Payment succeeded but token generation failed: ' . $tokenResult['message']
             ];
         }
-
-        $stmt = $this->pdo->prepare("UPDATE transactions SET status = 'failed' WHERE external_id = ?");
-        $stmt->execute([$externalId]);
-
-        return [
-            'success' => false,
-            'message' => $result['message']
-        ];
     }
 
     /**
-     * Handle AzamPay webhook callback
+     * Handle webhook (stub – not used, but kept for compatibility)
      */
     public function handleWebhook($callbackData)
     {
-        error_log("AzamPay Webhook: " . json_encode($callbackData));
-
-        $transactionId = $callbackData['transactionId'] ?? $callbackData['TransactionID'] ?? null;
-        $externalId = $callbackData['externalId'] ?? $callbackData['ExternalId'] ?? null;
-        $status = $callbackData['status'] ?? $callbackData['Status'] ?? '';
-
-        if (!$transactionId && !$externalId) {
-            http_response_code(400);
-            echo "Missing transaction identifier";
-            return;
-        }
-
-        $stmt = $this->pdo->prepare("
-            SELECT * FROM transactions 
-            WHERE (mpesa_receipt = ? OR external_id = ?) AND status = 'pending'
-            LIMIT 1
-        ");
-        $stmt->execute([$transactionId, $externalId]);
-        $transaction = $stmt->fetch();
-
-        if (!$transaction) {
-            http_response_code(404);
-            echo "Transaction not found";
-            return;
-        }
-
-        $isCompleted = (stripos($status, 'success') !== false || stripos($status, 'completed') !== false);
-
-        if ($isCompleted) {
-            $stmt = $this->pdo->prepare("
-                UPDATE transactions 
-                SET status = 'completed', completed_at = NOW() 
-                WHERE transaction_id = ?
-            ");
-            $stmt->execute([$transaction['transaction_id']]);
-
-            $tokenController = new TokenController($this->pdo);
-            $result = $tokenController->generateToken(
-                $transaction['user_id'],
-                $transaction['water_units'],
-                $transaction['payment_method']
-            );
-
-            echo $result['success'] ? "Token generated" : "Token generation failed";
-        } else {
-            $stmt = $this->pdo->prepare("UPDATE transactions SET status = 'failed' WHERE transaction_id = ?");
-            $stmt->execute([$transaction['transaction_id']]);
-            echo "Payment failed";
-        }
+        error_log("Simulated Webhook called (ignored): " . json_encode($callbackData));
+        echo "Webhook received but ignored in simulation mode.";
     }
 }

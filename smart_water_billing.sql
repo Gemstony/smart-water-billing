@@ -87,3 +87,23 @@ CREATE TABLE `esp_devices` (
     INDEX `idx_meter_id` (`meter_id`),
     INDEX `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+CREATE TABLE IF NOT EXISTS `azampay_tokens` (
+    `id` INT(11) AUTO_INCREMENT PRIMARY KEY,
+    `access_token` TEXT NOT NULL,
+    `expires_at` TIMESTAMP NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+CREATE TABLE IF NOT EXISTS `payment_logs` (
+    `id` INT(11) AUTO_INCREMENT PRIMARY KEY,
+    `transaction_id` INT(11) NULL,
+    `external_id` VARCHAR(100) NULL,
+    `request_payload` JSON NULL,
+    `response_payload` JSON NULL,
+    `http_code` INT(11) NULL,
+    `error_message` TEXT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
